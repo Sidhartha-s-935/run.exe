@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/notsus/projects/c++project/build",
+  "command": "/usr/bin/g++ -g -o CMakeFiles/test.dir/src/main.cpp.o -c /home/notsus/projects/c++project/src/main.cpp",
+  "file": "/home/notsus/projects/c++project/src/main.cpp",
+  "output": "CMakeFiles/test.dir/src/main.cpp.o"
+}
+]

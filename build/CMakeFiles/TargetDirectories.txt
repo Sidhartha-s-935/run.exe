@@ -1,0 +1,3 @@
+/home/notsus/projects/c++project/build/CMakeFiles/test.dir
+/home/notsus/projects/c++project/build/CMakeFiles/edit_cache.dir
+/home/notsus/projects/c++project/build/CMakeFiles/rebuild_cache.dir
