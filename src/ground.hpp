@@ -17,22 +17,39 @@ struct GroundTile
     bool isTop;
 };
 
+struct Obstacle
+{
+    Sprite sprite;
+    bool isActive;
+    FloatRect hitbox;
+};
+
 class Ground
 {
 private:
     vector<vector<GroundTile>> tiles;
-    vector<unique_ptr<Texture>> tileTextures; // Store textures using unique_ptr
+    vector<unique_ptr<Texture>> tileTextures;
 
+    // Tile selection vectors
     const vector<int> topTiles = {1, 2, 3, 5, 6, 7, 8, 18, 33, 34, 49, 50, 51, 54, 55};
     const vector<int> fillerTiles = {4, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20};
 
+    // Obstacle management
+    vector<Obstacle> obstacles;
+    const vector<int> obstacleTextureIds = {22, 23, 30, 33, 35}; // Dangerous-looking tiles
+    const float obstacleSpawnChance = 0.3f;
+
+    // Configuration
     const int tileSize = 32;
     const int gridHeight = 5;
-    int currentLeftmostTileIndex = 0;
+
+    // Helper method
+    void spawnObstacle(float xPosition);
 
 public:
     Ground(const string &basePath);
     void generateInitialGround();
+    bool checkCollision(const FloatRect &playerBounds);
     void update(float scrollAmount);
     void draw(RenderWindow &window);
 };

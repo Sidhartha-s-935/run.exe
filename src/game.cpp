@@ -39,7 +39,7 @@ void Game::run()
         float deltaTime = gameClock.restart().asSeconds();
         handleEvents();
         update(deltaTime);
-        render();
+        render(); // Move player right
     }
 }
 
@@ -57,34 +57,34 @@ void Game::handleEvents()
 
 void Game::update(float deltaTime)
 {
-    // Scroll background
     for (auto &background : backgrounds)
     {
-        background.move(-scrollSpeed * deltaTime, 0);
-        if (background.getPosition().x <= -1280)
+        background.move(scrollSpeed * deltaTime, 0);
+        if (background.getPosition().x >= 1280)
         {
-            float rightmostX = -1280.0f;
+            float leftmostX = 1280.0f;
             for (const auto &bg : backgrounds)
             {
-                rightmostX = std::max(rightmostX, bg.getPosition().x);
+                leftmostX = std::min(leftmostX, bg.getPosition().x);
             }
-            background.setPosition(rightmostX + 1280 - 1, 0);
+            background.setPosition(leftmostX - 1280 + 1, 0);
         }
     }
 
-    updateClouds(clouds, deltaTime, cloud1Texture, cloud2Texture, scrollSpeed);
+    updateClouds(clouds, deltaTime, cloud1Texture, cloud2Texture, -scrollSpeed);
     ground.update(scrollSpeed * deltaTime);
-
-    float pullSpeed = 200.0f;
-    player.sprite.move(-pullSpeed * deltaTime, 0);
 
     player.update();
 
-    if (player.sprite.getPosition().x <= 0)
-    {
-        std::cout << "Game Over! The screen caught up to the player." << std::endl;
-        window.close();
-    }
+    float playerX = player.sprite.getPosition().x;
+    float playerWidth = player.sprite.getGlobalBounds().width;
+    float windowWidth = window.getSize().x;
+
+    if (playerX < 0)
+        player.sprite.setPosition(0, player.sprite.getPosition().y); // Stop at left bound
+
+    if (playerX + playerWidth > windowWidth)
+        player.sprite.setPosition(windowWidth - playerWidth, player.sprite.getPosition().y); // Stop at right bound
 }
 
 void Game::render()
@@ -102,7 +102,9 @@ void Game::render()
     }
 
     ground.draw(window);
-    window.draw(player.sprite);
-
+    if (!player.gameOver)
+        window.draw(player.sprite);
+    else
+        window.draw(player.gameOverText);
     window.display();
 }
