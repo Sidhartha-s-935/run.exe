@@ -1,15 +1,25 @@
 cmake_minimum_required(VERSION 3.10)
+project(SFML_Game)
 
-# Set the project name
-project(test)
+set(CMAKE_CXX_STANDARD 17)
 
-# Find the SFML package
-find_package(SFML 2.5 COMPONENTS system window graphics network audio REQUIRED)
+# Find SFML
+find_package(SFML 2.5 COMPONENTS graphics window system REQUIRED)
 
-# Add the executable
-add_executable(${PROJECT_NAME} 
-src/main.cpp
+# Include directories
+include_directories(${SFML_INCLUDE_DIR})
+
+# Source files
+set(SOURCES
+    src/main.cpp
+    src/game.cpp
+    src/player.cpp
+    src/cloud.cpp
+    src/ground.cpp
 )
 
+# Add executable
+add_executable(SFML_Game ${SOURCES})
+
 # Link SFML libraries
-target_link_libraries(${PROJECT_NAME} sfml-system sfml-window sfml-graphics sfml-network sfml-audio)
+target_link_libraries(SFML_Game sfml-graphics sfml-window sfml-system)
