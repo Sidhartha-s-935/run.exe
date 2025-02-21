@@ -16,6 +16,7 @@ set(SOURCES
     src/player.cpp
     src/cloud.cpp
     src/ground.cpp
+    src/ball.cpp
 )
 
 # Add executable

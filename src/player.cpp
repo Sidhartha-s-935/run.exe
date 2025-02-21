@@ -1,6 +1,7 @@
 #include "player.hpp"
 #include <SFML/Window/Keyboard.hpp>
 #include <iostream>
+#include "ball.hpp"
 
 Player::Player(const std::string &spritesPath)
 {
@@ -131,7 +132,7 @@ void Player::move()
     const float leftBound = 0.0f;
     const float rightBound = 1280.0f - spriteWidth;
 
-    if (position.x < leftBound)
+    if (position.x < Ball::radius + 50)
     {
         gameOver = true;
     }

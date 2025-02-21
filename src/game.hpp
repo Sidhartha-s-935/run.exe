@@ -5,6 +5,7 @@
 #include "player.hpp"
 #include "cloud.hpp"
 #include "ground.hpp"
+#include "ball.hpp"
 
 class Game
 {
@@ -15,6 +16,7 @@ public:
     vector<Cloud> clouds;
     Player player;
     Ground ground;
+    Ball ball;
     Clock gameClock;
     string assetsPath = "../assets";
     float scrollSpeed = 50.0f;

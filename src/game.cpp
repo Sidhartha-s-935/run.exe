@@ -102,9 +102,12 @@ void Game::render()
     }
 
     ground.draw(window);
+    ball.update();
+    ball.draw(window);
     if (!player.gameOver)
         window.draw(player.sprite);
     else
         window.draw(player.gameOverText);
+
     window.display();
 }
