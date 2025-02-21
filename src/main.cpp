@@ -9,23 +9,18 @@
 using namespace std;
 using namespace sf;
 
-// Ground tile structure to store tile information
-
 struct Cloud
 {
     Sprite sprite;
     float speed;
 
-    // Constructor for initial spread-out cloud generation
     Cloud(const Texture &texture, float baseSpeed, float initialX)
     {
         sprite.setTexture(texture);
-        // Slightly reduced scale variation for more consistency
         float scale = 0.8f + (rand() % 30) / 100.0f;
         sprite.setScale(scale, scale);
 
-        // More controlled height variation
-        float maxHeight = 720 * 0.75f;
+        float maxHeight = 720 * 0.9f;
         float minHeight = 50;
         float height = minHeight + (rand() % int(maxHeight - minHeight));
 
@@ -188,22 +183,44 @@ private:
 public:
     Ground(const string &basePath)
     {
+        cout << "Initializing Ground with base path: " << basePath << endl;
+
         // Load all tile textures
         for (int i = 1; i <= 96; i++)
         {
             auto texture = make_unique<Texture>();
-            string filename = basePath + "/Tile_" + (i < 10 ? "0" : "") + to_string(i) + ".png";
+            // string filename = basePath + "/Tile_" + (i < 10 ? "0" : "") + to_string(i) + ".png";
+            string a = (i < 10 ? "0" : "");
+            /// home/notsus/projects/c++project/assets/world/ground /Tile_01.png
+            string filename = basePath + "/Tile_" + a + to_string(i) + ".png"; // + to_string(i) + ".png";
+
+            // Print absolute path for debugging
+            // cout << "Attempting to load: " << std::filesystem::absolute(filename).string() << endl;
 
             if (!texture->loadFromFile(filename))
             {
                 cerr << "Failed to load texture: " << filename << endl;
+                cout << "Current working directory: " << std::filesystem::current_path() << endl;
+
+                // Try to check if file exists
+                if (!std::filesystem::exists(filename))
+                {
+                    cerr << "File does not exist at path: " << filename << endl;
+                }
+                else
+                {
+                    cerr << "File exists but could not be loaded!" << endl;
+                }
+
                 // Add a blank texture to maintain index alignment
                 tileTextures.push_back(make_unique<Texture>());
                 continue;
             }
+            cout << "Successfully loaded: " << filename << endl;
             tileTextures.push_back(move(texture));
         }
 
+        cout << "Total textures loaded: " << tileTextures.size() << endl;
         generateInitialGround();
     }
 
