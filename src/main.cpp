@@ -2,9 +2,14 @@
 #include <iostream>
 #include <vector>
 #include <random>
+#include <memory>
+#include <filesystem>
+#include <ctime>
 
 using namespace std;
 using namespace sf;
+
+// Ground tile structure to store tile information
 
 struct Cloud
 {
@@ -160,25 +165,219 @@ void updateClouds(vector<Cloud> &clouds, float deltaTime, const Texture &cloud1T
     }
 }
 
+struct GroundTile
+{
+    Sprite sprite;
+    int tileNumber;
+    bool isTop;
+};
+
+class Ground
+{
+private:
+    vector<vector<GroundTile>> tiles;
+    vector<unique_ptr<Texture>> tileTextures; // Store textures using unique_ptr
+    const vector<int> topTiles = {1, 2, 3, 5, 6, 7, 8, 18, 33, 34, 49, 50, 51, 54, 55};
+    const vector<int> diagonalTiles = {41, 42};
+    const vector<int> elevatedTiles = {31, 32};
+    const vector<int> fillerTiles = {4, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20};
+    const int tileSize = 32;
+    const int gridHeight = 8;
+    int currentLeftmostTileIndex = 0;
+
+public:
+    Ground(const string &basePath)
+    {
+        // Load all tile textures
+        for (int i = 1; i <= 96; i++)
+        {
+            auto texture = make_unique<Texture>();
+            string filename = basePath + "/Tile_" + (i < 10 ? "0" : "") + to_string(i) + ".png";
+
+            if (!texture->loadFromFile(filename))
+            {
+                cerr << "Failed to load texture: " << filename << endl;
+                // Add a blank texture to maintain index alignment
+                tileTextures.push_back(make_unique<Texture>());
+                continue;
+            }
+            tileTextures.push_back(move(texture));
+        }
+
+        generateInitialGround();
+    }
+
+    void generateInitialGround()
+    {
+        int initialColumns = (1280 / tileSize) + 2;
+
+        for (int x = 0; x < initialColumns; x++)
+        {
+            vector<GroundTile> column;
+
+            // Generate top tile
+            GroundTile topTile;
+            int randomTopIndex = rand() % topTiles.size();
+            int tileNumber = topTiles[randomTopIndex];
+            if (tileNumber <= tileTextures.size() && tileTextures[tileNumber - 1])
+            {
+                topTile.tileNumber = tileNumber;
+                topTile.sprite.setTexture(*tileTextures[tileNumber - 1]);
+                topTile.sprite.setPosition(x * tileSize, 720 - (gridHeight * tileSize));
+                topTile.isTop = true;
+                column.push_back(topTile);
+            }
+
+            // Fill below with random filler tiles
+            for (int y = 1; y < gridHeight; y++)
+            {
+                GroundTile fillerTile;
+                int randomFillerIndex = rand() % fillerTiles.size();
+                int fillerTileNumber = fillerTiles[randomFillerIndex];
+                if (fillerTileNumber <= tileTextures.size() && tileTextures[fillerTileNumber - 1])
+                {
+                    fillerTile.tileNumber = fillerTileNumber;
+                    fillerTile.sprite.setTexture(*tileTextures[fillerTileNumber - 1]);
+                    fillerTile.sprite.setPosition(x * tileSize, 720 - ((gridHeight - y) * tileSize));
+                    fillerTile.isTop = false;
+                    column.push_back(fillerTile);
+                }
+            }
+
+            tiles.push_back(column);
+        }
+    }
+
+    void update(float scrollAmount)
+    {
+        // Move all tiles
+        for (auto &column : tiles)
+        {
+            for (auto &tile : column)
+            {
+                tile.sprite.move(-scrollAmount, 0);
+            }
+        }
+
+        // Check if we need to remove leftmost column and add a new one on the right
+        if (!tiles.empty() && !tiles[0].empty() &&
+            tiles[0][0].sprite.getPosition().x < -tileSize)
+        {
+
+            tiles.erase(tiles.begin());
+
+            // Add new column on the right
+            vector<GroundTile> newColumn;
+            float rightmostX = tiles.back()[0].sprite.getPosition().x + tileSize;
+
+            // Generate top tile
+            GroundTile topTile;
+            int randomTopIndex = rand() % topTiles.size();
+            int tileNumber = topTiles[randomTopIndex];
+            if (tileNumber <= tileTextures.size() && tileTextures[tileNumber - 1])
+            {
+                topTile.tileNumber = tileNumber;
+                topTile.sprite.setTexture(*tileTextures[tileNumber - 1]);
+                topTile.sprite.setPosition(rightmostX, 720 - (gridHeight * tileSize));
+                topTile.isTop = true;
+                newColumn.push_back(topTile);
+            }
+
+            // Fill below with random filler tiles
+            for (int y = 1; y < gridHeight; y++)
+            {
+                GroundTile fillerTile;
+                int randomFillerIndex = rand() % fillerTiles.size();
+                int fillerTileNumber = fillerTiles[randomFillerIndex];
+                if (fillerTileNumber <= tileTextures.size() && tileTextures[fillerTileNumber - 1])
+                {
+                    fillerTile.tileNumber = fillerTileNumber;
+                    fillerTile.sprite.setTexture(*tileTextures[fillerTileNumber - 1]);
+                    fillerTile.sprite.setPosition(rightmostX, 720 - ((gridHeight - y) * tileSize));
+                    fillerTile.isTop = false;
+                    newColumn.push_back(fillerTile);
+                }
+            }
+
+            tiles.push_back(newColumn);
+        }
+    }
+
+    void draw(RenderWindow &window)
+    {
+        for (const auto &column : tiles)
+        {
+            for (const auto &tile : column)
+            {
+                window.draw(tile.sprite);
+            }
+        }
+    }
+};
+
 int main()
 {
+    cout << "Current working directory: " << std::filesystem::current_path() << std::endl;
     RenderWindow window(VideoMode(1280, 720), "SFML");
     window.setVerticalSyncEnabled(true);
     srand(time(0));
+
+    // Define relative paths
+    string assetsPath = "../assets";
+    string worldPath = assetsPath + "/world";
+    string spritesPath = assetsPath + "/sprites";
+    string groundPath = worldPath + "/ground";
 
     // Load textures
     vector<RectangleShape> backgrounds;
     Texture backgroundTexture, cloud1Texture, cloud2Texture;
     Texture runTexture, idleTexture, attackTexture;
 
-    if (!runTexture.loadFromFile("/home/notsus/projects/c++project/assets/sprites/run.png") ||
-        !idleTexture.loadFromFile("/home/notsus/projects/c++project/assets/sprites/idle.png") ||
-        !attackTexture.loadFromFile("/home/notsus/projects/c++project/assets/sprites/attack.png") ||
-        !backgroundTexture.loadFromFile("/home/notsus/projects/c++project/assets/world/background.png") ||
-        !cloud1Texture.loadFromFile("/home/notsus/projects/c++project/assets/world/cloud1.png") ||
-        !cloud2Texture.loadFromFile("/home/notsus/projects/c++project/assets/world/cloud2.png"))
+    // Create Ground instance with relative path
+    Ground ground(groundPath);
+
+    // Load all required textures with error checking
+    bool loadSuccess = true;
+
+    if (!runTexture.loadFromFile(spritesPath + "/run.png"))
     {
-        cerr << "Error loading sprite sheets!" << endl;
+        cerr << "Failed to load run texture!" << endl;
+        loadSuccess = false;
+    }
+
+    if (!idleTexture.loadFromFile(spritesPath + "/idle.png"))
+    {
+        cerr << "Failed to load idle texture!" << endl;
+        loadSuccess = false;
+    }
+
+    if (!attackTexture.loadFromFile(spritesPath + "/attack.png"))
+    {
+        cerr << "Failed to load attack texture!" << endl;
+        loadSuccess = false;
+    }
+
+    if (!backgroundTexture.loadFromFile(worldPath + "/background.png"))
+    {
+        cerr << "Failed to load background texture!" << endl;
+        loadSuccess = false;
+    }
+
+    if (!cloud1Texture.loadFromFile(worldPath + "/cloud1.png"))
+    {
+        cerr << "Failed to load cloud1 texture!" << endl;
+        loadSuccess = false;
+    }
+
+    if (!cloud2Texture.loadFromFile(worldPath + "/cloud2.png"))
+    {
+        cerr << "Failed to load cloud2 texture!" << endl;
+        loadSuccess = false;
+    }
+
+    if (!loadSuccess)
+    {
+        cerr << "Failed to load one or more textures!" << endl;
         return -1;
     }
 
@@ -236,6 +435,8 @@ int main()
         }
 
         updateClouds(clouds, deltaTime, cloud1Texture, cloud2Texture, scrollSpeed);
+        // Inside the main game loop
+        ground.update(scrollSpeed * deltaTime);
 
         attack(sprite, attackTexture, attackFrame, attackClock, isAttacking, isRunning, facingRight, position, totalAttackFrames);
         movement(position, sprite, runTexture, idleTexture, currentFrame, facingRight, movementClock, isRunning, isAttacking);
@@ -262,6 +463,7 @@ int main()
         window.clear();
 
         // Draw layers in correct order
+        // Draw layers in correct order
         for (const auto &background : backgrounds)
         {
             window.draw(background);
@@ -272,6 +474,7 @@ int main()
             window.draw(cloud.sprite);
         }
 
+        ground.draw(window); // Add this line
         window.draw(sprite);
 
         window.display();
