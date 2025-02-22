@@ -6,6 +6,7 @@
 #include <memory>
 #include <iostream>
 #include <filesystem>
+#include "player.hpp"
 
 using namespace std;
 using namespace sf;
@@ -42,16 +43,21 @@ private:
     // Configuration
     const int tileSize = 32;
     const int gridHeight = 5;
-
     // Helper method
-    void spawnObstacle(float xPosition);
+    void spawnObstacleGroup(float xPosition);
 
 public:
     Ground(const string &basePath);
     void generateInitialGround();
     bool checkCollision(const FloatRect &playerBounds);
-    void update(float scrollAmount);
+    void handlePlayerCollision(Player &player);
+    void update(float deltaTime, float scrollAmount, Player &player);
     void draw(RenderWindow &window);
+
+    float lastObstacleX;
+    float minObstacleSpacing;
+    float gameTime;
+    float initialDelay;
 };
 
 #endif // GROUND_HPP

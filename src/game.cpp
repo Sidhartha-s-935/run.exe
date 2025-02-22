@@ -72,7 +72,7 @@ void Game::update(float deltaTime)
     }
 
     updateClouds(clouds, deltaTime, cloud1Texture, cloud2Texture, -scrollSpeed);
-    ground.update(scrollSpeed * deltaTime);
+    ground.update(deltaTime, scrollSpeed * deltaTime, player);
 
     player.update();
 

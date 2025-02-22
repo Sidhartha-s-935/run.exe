@@ -30,8 +30,22 @@ Player::Player(const std::string &spritesPath)
     Player::gameOverText.setStyle(sf::Text::Bold);
     Player::gameOverText.setPosition(500, 300);
 
-    sprite.setTexture(idleTexture);
     position = Vector2f(400, groundLevel);
+    isColliding = false;
+    pushBackAmount = 0.0f;
+}
+
+void Player::onCollision(float scrollAmount)
+{
+    isColliding = true;
+    pushBackAmount = scrollAmount;
+
+    // Only allow jumping while colliding
+    if (!isJumping)
+    {
+        sprite.setTexture(runTexture);
+        sprite.setTextureRect(IntRect(currentFrame * frameWidth, 0, frameWidth, frameHeight));
+    }
 }
 
 void Player::jump()
@@ -41,6 +55,7 @@ void Player::jump()
         isJumping = true;
         jumpVelocity = jumpStrength;
         jumpClock.restart();
+        isColliding = false;
     }
 
     if (isJumping)
@@ -80,18 +95,24 @@ void Player::move()
     if (isJumping)
         moveSpeed *= airControl;
 
-    if (Keyboard::isKeyPressed(Keyboard::A))
+    if (isColliding && !isJumping)
     {
-        position.x -= moveSpeed * (isJumping ? airControl : 1.0f) * deltaTime;
-        facingRight = true;
-        moving = true;
+        position.x -= pushBackAmount;
+        moving = false; // Don't animate running while being pushed
     }
-    else if (Keyboard::isKeyPressed(Keyboard::D))
-    {
-        position.x += moveSpeed * (isJumping ? airControl : 1.0f) * deltaTime;
-        facingRight = true;
-        moving = true;
-    }
+
+    // if (Keyboard::isKeyPressed(Keyboard::A))
+    // {
+    //     position.x -= moveSpeed * (isJumping ? airControl : 1.0f) * deltaTime;
+    //     facingRight = true;
+    //     moving = true;
+    // }
+    // else if (Keyboard::isKeyPressed(Keyboard::D))
+    // {
+    //     position.x += moveSpeed * (isJumping ? airControl : 1.0f) * deltaTime;
+    //     facingRight = true;
+    //     moving = true;
+    // }
 
     // Screen bounds checking
     const float leftBound = 0.0f;
@@ -161,8 +182,17 @@ void Player::update()
 
     if (!isAttacking && !isJumping)
     {
-        sprite.setTexture(isRunning ? runTexture : idleTexture);
-        sprite.setTextureRect(IntRect(currentFrame * frameWidth, 0, frameWidth, frameHeight));
+        if (isColliding)
+        {
+            // Use a "struggling" animation when colliding
+            sprite.setTexture(runTexture);
+            sprite.setTextureRect(IntRect((currentFrame % 3) * frameWidth, 0, frameWidth, frameHeight));
+        }
+        else
+        {
+            sprite.setTexture(isRunning ? runTexture : idleTexture);
+            sprite.setTextureRect(IntRect(currentFrame * frameWidth, 0, frameWidth, frameHeight));
+        }
     }
 
     if (!facingRight)
@@ -175,4 +205,10 @@ void Player::update()
         sprite.setScale(2.f, 2.f);
         sprite.setOrigin(0, 0);
     }
+
+    if (!isColliding)
+    {
+        pushBackAmount = 0.0f;
+    }
+    isColliding = false;
 }

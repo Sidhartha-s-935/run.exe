@@ -1,4 +1,5 @@
 #include "ground.hpp"
+#include "player.hpp"
 
 Ground::Ground(const string &basePath)
 {
@@ -25,6 +26,10 @@ Ground::Ground(const string &basePath)
     }
 
     cout << "Total textures loaded: " << tileTextures.size() << endl;
+    lastObstacleX = 0;
+    minObstacleSpacing = 300.0f; // Minimum pixels between obstacles
+    gameTime = 0.0f;
+    initialDelay = 5.0f;
     generateInitialGround();
 }
 
@@ -64,46 +69,90 @@ void Ground::generateInitialGround()
         }
 
         tiles.push_back(column);
-
-        // Possibly spawn an obstacle
-        if (rand() / static_cast<float>(RAND_MAX) < obstacleSpawnChance)
-        {
-            spawnObstacle(x * tileSize);
-        }
     }
 }
 
-void Ground::spawnObstacle(float xPosition)
+void Ground::spawnObstacleGroup(float xPosition)
 {
-    Obstacle obstacle;
+    // Decide whether to spawn a single or stacked obstacle
+    bool spawnStacked = (rand() / static_cast<float>(RAND_MAX) < 0.3f); // 30% chance for stacked obstacles
+
+    // Spawn bottom obstacle
+    Obstacle bottomObstacle;
     int obstacleType = obstacleTextureIds[rand() % obstacleTextureIds.size()];
 
     if (obstacleType <= tileTextures.size() && tileTextures[obstacleType - 1])
     {
-        obstacle.sprite.setTexture(*tileTextures[obstacleType - 1]);
-        // Place obstacle slightly above the ground
-        obstacle.sprite.setPosition(xPosition, 720 - (gridHeight * tileSize) - tileSize);
-        obstacle.isActive = true;
-        // Update hitbox for collision detection
-        obstacle.hitbox = obstacle.sprite.getGlobalBounds();
-        obstacles.push_back(obstacle);
-    }
-}
+        bottomObstacle.sprite.setTexture(*tileTextures[obstacleType - 1]);
+        bottomObstacle.sprite.setPosition(xPosition, 720 - (gridHeight * tileSize) - tileSize);
+        bottomObstacle.isActive = true;
+        bottomObstacle.hitbox = bottomObstacle.sprite.getGlobalBounds();
+        obstacles.push_back(bottomObstacle);
 
-bool Ground::checkCollision(const FloatRect &playerBounds)
-{
-    for (const auto &obstacle : obstacles)
-    {
-        if (obstacle.isActive && obstacle.hitbox.intersects(playerBounds))
+        // Possibly spawn a second obstacle on top
+        if (spawnStacked)
         {
-            return true;
+            Obstacle topObstacle;
+            int topObstacleType = obstacleTextureIds[rand() % obstacleTextureIds.size()];
+
+            if (topObstacleType <= tileTextures.size() && tileTextures[topObstacleType - 1])
+            {
+                topObstacle.sprite.setTexture(*tileTextures[topObstacleType - 1]);
+                // Position the top obstacle above the bottom one
+                topObstacle.sprite.setPosition(xPosition,
+                                               bottomObstacle.sprite.getPosition().y - tileSize);
+                topObstacle.isActive = true;
+                topObstacle.hitbox = topObstacle.sprite.getGlobalBounds();
+                obstacles.push_back(topObstacle);
+            }
         }
     }
-    return false;
 }
 
-void Ground::update(float scrollAmount)
+void Ground::handlePlayerCollision(Player &player)
 {
+
+    FloatRect playerHitbox = player.sprite.getGlobalBounds();
+    // Adjust these values based on your player sprite to create a tighter box
+    float hitboxScale = 0.1f; // Reduce hitbox to 60% of sprite size
+
+    // Calculate the reduced hitbox dimensions while keeping it centered
+    float widthReduction = playerHitbox.width * (1 - hitboxScale);
+    // float heightReduction = playerHitbox.height * (1 - hitboxScale);
+
+    FloatRect tightPlayerHitbox(
+        playerHitbox.left + (widthReduction / 2), // Center the hitbox horizontally
+        playerHitbox.top,                         // Center the hitbox vertically
+        playerHitbox.width * hitboxScale,         // Reduced width
+        playerHitbox.height                       // Reduced height
+    );
+
+    for (auto &obstacle : obstacles)
+    {
+        if (obstacle.isActive && obstacle.hitbox.intersects(tightPlayerHitbox))
+        {
+            if (player.jumpVelocity > 0) // Player is jumping
+            {
+                // Player successfully avoids the obstacle
+                continue;
+            }
+            else
+            {
+                // Player collides with the obstacle
+                player.isColliding = true;
+                player.pushBackAmount = 2.0f;
+                cout << "Collision detected! Game Over." << endl;
+                return;
+            }
+        }
+    }
+}
+
+void Ground::update(float deltaTime, float scrollAmount, Player &player)
+{
+    // Update game time
+    gameTime += deltaTime;
+
     // Update ground tiles
     for (auto &column : tiles)
     {
@@ -119,6 +168,9 @@ void Ground::update(float scrollAmount)
         obstacle.sprite.move(-scrollAmount, 0);
         obstacle.hitbox = obstacle.sprite.getGlobalBounds();
     }
+
+    // Update last obstacle position
+    lastObstacleX -= scrollAmount;
 
     // Remove off-screen obstacles
     obstacles.erase(
@@ -164,12 +216,20 @@ void Ground::update(float scrollAmount)
 
         tiles.push_back(newColumn);
 
-        // Possibly spawn a new obstacle
-        if (rand() / static_cast<float>(RAND_MAX) < obstacleSpawnChance)
+        // Only spawn obstacles after initial delay
+        if (gameTime >= initialDelay)
         {
-            spawnObstacle(rightmostX);
+            if (rightmostX - lastObstacleX >= minObstacleSpacing &&
+                rand() / static_cast<float>(RAND_MAX) < obstacleSpawnChance)
+            {
+                spawnObstacleGroup(rightmostX);
+                lastObstacleX = rightmostX;
+            }
         }
     }
+
+    // Handle player collision
+    handlePlayerCollision(player);
 }
 
 void Ground::draw(RenderWindow &window)
