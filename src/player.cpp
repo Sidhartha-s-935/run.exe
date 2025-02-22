@@ -40,7 +40,6 @@ void Player::jump()
     {
         isJumping = true;
         jumpVelocity = jumpStrength;
-        jumpFrame = 0; // Start jump animation
         jumpClock.restart();
     }
 
@@ -50,47 +49,16 @@ void Player::jump()
         jumpVelocity += gravity * deltaTime;
         position.y += jumpVelocity * deltaTime;
 
-        // Determine animation phase
-        if (jumpVelocity < -100.0f)
-        {
-            // Going up animation
-            jumpFrame = 4;
-        }
-        else if (jumpVelocity >= -100.0f && jumpVelocity <= 100.0f)
-        {
-            // Peak animation (play fully)
-            static float peakTime = 0.0f;
-            peakTime += deltaTime;
-
-            if (peakTime > 0.05f) // Hold peak frame longer
-            {
-                jumpFrame = 6; // Peak animation
-                peakTime = 0.0f;
-            }
-        }
-        else if (jumpVelocity > 100.0f && position.y < groundLevel)
-        {
-            // Falling animation (play fully)
-            static bool fallAnimPlayed = false;
-            if (!fallAnimPlayed)
-            {
-                jumpFrame = 7;
-                fallAnimPlayed = true;
-            }
-        }
-
-        sprite.setTexture(jumpTexture);
-        sprite.setTextureRect(IntRect(jumpFrame * frameWidth, 0, frameWidth, frameHeight));
+        // Always set to the 5th frame of run animation during jump
+        sprite.setTexture(runTexture);
+        sprite.setTextureRect(IntRect(5 * frameWidth, 0, frameWidth, frameHeight));
 
         // Ground collision check
-        if (position.y - 10 >= groundLevel)
+        if (position.y >= groundLevel + 20)
         {
             position.y = groundLevel;
             jumpVelocity = 0;
             isJumping = false;
-
-            // Play full falling animation before transitioning
-            jumpFrame = 2;
         }
     }
 }
@@ -103,13 +71,10 @@ void Player::move()
     float frameSpeed = 0.1f;
     float baseSpeed = 100.0f;
     float airControl = 0.7f; // Reduced control while in air
-    bool moving = false;
+    bool moving = true;
     float deltaTime = movementClock.getElapsedTime().asSeconds();
     float spriteWidth = frameWidth * sprite.getScale().x;
 
-    // Base scroll movement
-    if (!isJumping)
-        position.x -= 25 * deltaTime;
     // Calculate actual movement speed
     float moveSpeed = baseSpeed;
     if (isJumping)
@@ -118,7 +83,7 @@ void Player::move()
     if (Keyboard::isKeyPressed(Keyboard::A))
     {
         position.x -= moveSpeed * (isJumping ? airControl : 1.0f) * deltaTime;
-        facingRight = false;
+        facingRight = true;
         moving = true;
     }
     else if (Keyboard::isKeyPressed(Keyboard::D))
