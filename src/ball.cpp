@@ -19,7 +19,7 @@ void Ball::update(float deltaTime)
     {
         elapsedTime = 0.0f;
         currentFrame = (currentFrame + 1) % frameCount;
-        sprite.setTextureRect(sf::IntRect(currentFrame * 128, 0, 128, 128));
+        sprite.setTextureRect(sf::IntRect(currentFrame * 128, 0, 128 - 3, 128));
         sprite.setScale(3.f, 3.f); // Move to next frame
     }
 }

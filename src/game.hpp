@@ -2,6 +2,7 @@
 #define GAME_HPP
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include "player.hpp"
 #include "cloud.hpp"
 #include "ground.hpp"
@@ -20,6 +21,7 @@ public:
     Clock gameClock;
     Font font;
     Text scoreText;
+    Music music;
     int scoreval = 0;
     string assetsPath = "../assets";
     float scrollSpeed = 50.0f;

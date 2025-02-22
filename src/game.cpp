@@ -30,6 +30,16 @@ Game::Game(const std::string &assetsPath)
     }
 
     initializeClouds(clouds, cloud1Texture, cloud2Texture, scrollSpeed, 1280.0f * 3);
+
+    if (!music.openFromFile(assetsPath + "/music.mp3"))
+    {
+        std::cerr << "Failed to load background music!" << std::endl;
+    }
+    else
+    {
+        music.setLoop(true);
+        music.play();
+    }
 }
 
 void Game::run()
@@ -74,6 +84,8 @@ void Game::update(float deltaTime)
     updateClouds(clouds, deltaTime, cloud1Texture, cloud2Texture, -scrollSpeed);
     ground.update(deltaTime, scrollSpeed * deltaTime, player);
     score(deltaTime);
+    if (scoreval % 1000 == 0)
+        scrollSpeed += 50.0f;
     player.update();
 
     float playerX = player.sprite.getPosition().x;

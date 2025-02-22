@@ -23,4 +23,4 @@ set(SOURCES
 add_executable(SFML_Game ${SOURCES})
 
 # Link SFML libraries
-target_link_libraries(SFML_Game sfml-graphics sfml-window sfml-system)
+target_link_libraries(SFML_Game sfml-graphics sfml-window sfml-system sfml-audio)

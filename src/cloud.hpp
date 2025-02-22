@@ -11,7 +11,6 @@ struct Cloud
 {
     Sprite sprite;
     float speed;
-
     Cloud(const Texture &texture, float baseSpeed, float initialX);
     Cloud(const Texture &texture, float baseSpeed);
 
