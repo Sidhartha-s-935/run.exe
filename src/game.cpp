@@ -39,7 +39,7 @@ void Game::run()
         float deltaTime = gameClock.restart().asSeconds();
         handleEvents();
         update(deltaTime);
-        render(); // Move player right
+        render(deltaTime); // Move player right
     }
 }
 
@@ -87,7 +87,7 @@ void Game::update(float deltaTime)
         player.sprite.setPosition(windowWidth - playerWidth, player.sprite.getPosition().y); // Stop at right bound
 }
 
-void Game::render()
+void Game::render(float deltaTime)
 {
     window.clear();
 
@@ -102,7 +102,7 @@ void Game::render()
     }
 
     ground.draw(window);
-    ball.update();
+    ball.update(deltaTime);
     ball.draw(window);
     if (!player.gameOver)
         window.draw(player.sprite);

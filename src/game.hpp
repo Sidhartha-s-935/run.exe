@@ -25,7 +25,7 @@ public:
     void run();
     void handleEvents();
     void update(float deltaTime);
-    void render();
+    void render(float deltaTime);
 };
 
 #endif // GAME_HPP

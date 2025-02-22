@@ -7,13 +7,18 @@
 class Ball
 {
 public:
-    sf::CircleShape shape;
-    constexpr static float radius = 100.f; // Radius of the ball
-    sf::Vector2f position;                 // Position of the ball
-    sf::Color color = sf::Color::Red;
+    constexpr static float radius = 100.f;                   // Radius of the ball (used for positioning)
+    sf::Vector2f position = sf::Vector2f(radius + 100c, 480); // Position of the ball
+    sf::Texture texture;
+    sf::Sprite sprite;
+    constexpr static int frameCount = 9; // Number of animation frames
+    int currentFrame = 0;
+    float frameDuration = 0.05f; // Time per frame in seconds
+    float elapsedTime = 0.0f;
+
     Ball();                              // Constructor
-    void update();                       // Update ball state if needed
-    void draw(sf::RenderWindow &window); // Render the ball
+    void update(float deltaTime);        // Update animation
+    void draw(sf::RenderWindow &window); // Render the sprite
 };
 
 #endif // BALL_HPP

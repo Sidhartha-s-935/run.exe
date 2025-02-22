@@ -30,7 +30,7 @@ Player::Player(const std::string &spritesPath)
     Player::gameOverText.setStyle(sf::Text::Bold);
     Player::gameOverText.setPosition(500, 300);
 
-    position = Vector2f(400, groundLevel);
+    position = Vector2f(500, groundLevel);
     isColliding = false;
     pushBackAmount = 0.0f;
 }
