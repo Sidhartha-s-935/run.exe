@@ -27,6 +27,7 @@ public:
     float jumpStrength = -1000.0f;
     float gravity = 3000.0f;
     float groundLevel = 302.0f;
+    float frameSpeed = 0.1f;
 
     Player(const std::string &spritesPath);
     void update();

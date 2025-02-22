@@ -84,8 +84,21 @@ void Game::update(float deltaTime)
     updateClouds(clouds, deltaTime, cloud1Texture, cloud2Texture, -scrollSpeed);
     ground.update(deltaTime, scrollSpeed * deltaTime, player);
     score(deltaTime);
-    if (scoreval % 1000 == 0)
+
+    if (scoreval % 500 == 0)
+    {
+        if (player.frameSpeed > 0.05f && scoreval % 1000 == 0)
+            player.frameSpeed -= 0.01f;
+        if (ball.frameDuration > 0.04f && scoreval % 2500 == 0)
+            ball.frameDuration -= 0.01f;
         scrollSpeed += 50.0f;
+        player.pushBackAmount += 1.f;
+    }
+
+    if (player.gameOver)
+    {
+    }
+
     player.update();
 
     float playerX = player.sprite.getPosition().x;

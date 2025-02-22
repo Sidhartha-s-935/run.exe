@@ -83,7 +83,6 @@ void Player::move()
     if (isAttacking)
         return;
 
-    float frameSpeed = 0.1f;
     float baseSpeed = 100.0f;
     float airControl = 0.7f; // Reduced control while in air
     bool moving = true;
