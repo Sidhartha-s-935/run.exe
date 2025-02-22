@@ -73,7 +73,7 @@ void Game::update(float deltaTime)
 
     updateClouds(clouds, deltaTime, cloud1Texture, cloud2Texture, -scrollSpeed);
     ground.update(deltaTime, scrollSpeed * deltaTime, player);
-
+    score(deltaTime);
     player.update();
 
     float playerX = player.sprite.getPosition().x;
@@ -85,6 +85,17 @@ void Game::update(float deltaTime)
 
     if (playerX + playerWidth > windowWidth)
         player.sprite.setPosition(windowWidth - playerWidth, player.sprite.getPosition().y); // Stop at right bound
+}
+
+void Game::score(float deltaTime)
+{
+    font.loadFromFile("../assets/font.otf");
+    scoreval += 1;
+    scoreText.setString("Score: " + std::to_string(scoreval));
+    scoreText.setPosition(1100, 50);
+    scoreText.setFont(font);
+    scoreText.setCharacterSize(32);
+    scoreText.setFillColor(Color::White);
 }
 
 void Game::render(float deltaTime)
@@ -108,6 +119,6 @@ void Game::render(float deltaTime)
         window.draw(player.sprite);
     else
         window.draw(player.gameOverText);
-
+    window.draw(scoreText);
     window.display();
 }

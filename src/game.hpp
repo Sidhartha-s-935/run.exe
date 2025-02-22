@@ -18,12 +18,16 @@ public:
     Ground ground;
     Ball ball;
     Clock gameClock;
+    Font font;
+    Text scoreText;
+    int scoreval = 0;
     string assetsPath = "../assets";
     float scrollSpeed = 50.0f;
 
     Game(const std::string &assetsPath);
     void run();
     void handleEvents();
+    void score(float deltaTime);
     void update(float deltaTime);
     void render(float deltaTime);
 };

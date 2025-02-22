@@ -7,8 +7,8 @@
 class Ball
 {
 public:
-    constexpr static float radius = 100.f;                   // Radius of the ball (used for positioning)
-    sf::Vector2f position = sf::Vector2f(radius + 100c, 480); // Position of the ball
+    constexpr static float radius = 100.f;                  // Radius of the ball (used for positioning)
+    sf::Vector2f position = sf::Vector2f(radius + 75, 480); // Position of the ball
     sf::Texture texture;
     sf::Sprite sprite;
     constexpr static int frameCount = 9; // Number of animation frames
