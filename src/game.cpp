@@ -4,6 +4,7 @@
 
 Game::Game(const std::string &assetsPath)
     : window(VideoMode(1280, 720), "SFML"),
+      menu(assetsPath, Vector2f(1280, 720)),
       player(assetsPath + "/sprites"),
       ground(assetsPath + "/world/ground"),
       scrollSpeed(200.0f) // Adjust speed as necessary
@@ -63,54 +64,65 @@ void Game::handleEvents()
         {
             window.close();
         }
+        menu.handleInput(event, window);
     }
 }
 
 void Game::update(float deltaTime)
 {
-    for (auto &background : backgrounds)
+    menu.update(deltaTime);
+
+    if (menu.getCurrentState() == Menu::State::Playing)
     {
-        background.move(scrollSpeed * deltaTime, 0);
-        if (background.getPosition().x >= 1280)
+        for (auto &background : backgrounds)
         {
-            float leftmostX = 1280.0f;
-            for (const auto &bg : backgrounds)
+            background.move(scrollSpeed * deltaTime, 0);
+            if (background.getPosition().x >= 1280)
             {
-                leftmostX = std::min(leftmostX, bg.getPosition().x);
+                float leftmostX = 1280.0f;
+                for (const auto &bg : backgrounds)
+                {
+                    leftmostX = std::min(leftmostX, bg.getPosition().x);
+                }
+                background.setPosition(leftmostX - 1280 + 1, 0);
             }
-            background.setPosition(leftmostX - 1280 + 1, 0);
         }
+
+        updateClouds(clouds, deltaTime, cloud1Texture, cloud2Texture, -scrollSpeed);
+        ground.update(deltaTime, scrollSpeed * deltaTime, player);
+        score(deltaTime);
+
+        if (scoreval % 500 == 0)
+        {
+            if (player.frameSpeed > 0.05f && scoreval % 1000 == 0)
+                player.frameSpeed -= 0.01f;
+            if (ball.frameDuration > 0.04f && scoreval % 2500 == 0)
+                ball.frameDuration -= 0.01f;
+            scrollSpeed += 50.0f;
+            player.pushBackAmount += 1.f;
+        }
+
+        if (player.gameOver)
+        {
+        }
+
+        player.update();
+
+        float playerX = player.sprite.getPosition().x;
+        float playerWidth = player.sprite.getGlobalBounds().width;
+        float windowWidth = window.getSize().x;
+
+        if (playerX < 0)
+            player.sprite.setPosition(0, player.sprite.getPosition().y); // Stop at left bound
+
+        if (playerX + playerWidth > windowWidth)
+            player.sprite.setPosition(windowWidth - playerWidth, player.sprite.getPosition().y);
+
+        if (player.gameOver)
+        {
+            menu.showGameOver(scoreval, highscore);
+        } // Stop at right bound
     }
-
-    updateClouds(clouds, deltaTime, cloud1Texture, cloud2Texture, -scrollSpeed);
-    ground.update(deltaTime, scrollSpeed * deltaTime, player);
-    score(deltaTime);
-
-    if (scoreval % 500 == 0)
-    {
-        if (player.frameSpeed > 0.05f && scoreval % 1000 == 0)
-            player.frameSpeed -= 0.01f;
-        if (ball.frameDuration > 0.04f && scoreval % 2500 == 0)
-            ball.frameDuration -= 0.01f;
-        scrollSpeed += 50.0f;
-        player.pushBackAmount += 1.f;
-    }
-
-    if (player.gameOver)
-    {
-    }
-
-    player.update();
-
-    float playerX = player.sprite.getPosition().x;
-    float playerWidth = player.sprite.getGlobalBounds().width;
-    float windowWidth = window.getSize().x;
-
-    if (playerX < 0)
-        player.sprite.setPosition(0, player.sprite.getPosition().y); // Stop at left bound
-
-    if (playerX + playerWidth > windowWidth)
-        player.sprite.setPosition(windowWidth - playerWidth, player.sprite.getPosition().y); // Stop at right bound
 }
 
 void Game::score(float deltaTime)
@@ -154,25 +166,28 @@ void Game::score(float deltaTime)
 void Game::render(float deltaTime)
 {
     window.clear();
-
-    for (const auto &background : backgrounds)
+    if (menu.getCurrentState() == Menu::State::Playing)
     {
-        window.draw(background);
-    }
+        for (const auto &background : backgrounds)
+        {
+            window.draw(background);
+        }
 
-    for (const auto &cloud : clouds)
-    {
-        window.draw(cloud.sprite);
-    }
+        for (const auto &cloud : clouds)
+        {
+            window.draw(cloud.sprite);
+        }
 
-    ground.draw(window);
-    ball.update(deltaTime);
-    ball.draw(window);
-    if (!player.gameOver)
-        window.draw(player.sprite);
-    else
-        window.draw(player.gameOverText);
-    window.draw(scoreText);
-    window.draw(highscoreText);
+        ground.draw(window);
+        ball.update(deltaTime);
+        ball.draw(window);
+        if (!player.gameOver)
+            window.draw(player.sprite);
+        else
+            window.draw(player.gameOverText);
+        window.draw(scoreText);
+        window.draw(highscoreText);
+    }
+    menu.draw(window);
     window.display();
 }

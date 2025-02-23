@@ -17,6 +17,7 @@ set(SOURCES
     src/cloud.cpp
     src/ground.cpp
     src/ball.cpp
+    src/menu.cpp
 )
 
 # Add executable

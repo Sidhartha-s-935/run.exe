@@ -7,6 +7,7 @@
 #include "cloud.hpp"
 #include "ground.hpp"
 #include "ball.hpp"
+#include "menu.hpp"
 
 class Game
 {
@@ -18,6 +19,7 @@ public:
     Player player;
     Ground ground;
     Ball ball;
+    Menu menu;
     Clock gameClock;
     Font font;
     Text scoreText;
