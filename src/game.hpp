@@ -21,8 +21,11 @@ public:
     Clock gameClock;
     Font font;
     Text scoreText;
+    Text highscoreText;
     Music music;
+    string highscorePath = "../assets/highscore.txt";
     int scoreval = 0;
+    int highscore = 0;
     string assetsPath = "../assets";
     float scrollSpeed = 50.0f;
 

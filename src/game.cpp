@@ -1,5 +1,6 @@
 #include "game.hpp"
 #include <iostream>
+#include <fstream>
 
 Game::Game(const std::string &assetsPath)
     : window(VideoMode(1280, 720), "SFML"),
@@ -114,13 +115,40 @@ void Game::update(float deltaTime)
 
 void Game::score(float deltaTime)
 {
+    ifstream file(highscorePath);
+    if (file.is_open())
+    {
+        file >> highscore;
+        file.close();
+    }
     font.loadFromFile("../assets/font.otf");
-    scoreval += 1;
-    scoreText.setString("Score: " + std::to_string(scoreval));
-    scoreText.setPosition(1100, 50);
-    scoreText.setFont(font);
-    scoreText.setCharacterSize(32);
-    scoreText.setFillColor(Color::White);
+    if (!player.gameOver)
+    {
+        scoreval += 1;
+        scoreText.setString("Score: " + std::to_string(scoreval));
+        highscoreText.setString("Highscore: " + std::to_string(highscore));
+        highscoreText.setPosition(1100, 75);
+        highscoreText.setFont(font);
+        highscoreText.setCharacterSize(32);
+        highscoreText.setFillColor(Color::White);
+        scoreText.setPosition(1100, 50);
+        scoreText.setFont(font);
+        scoreText.setCharacterSize(32);
+        scoreText.setFillColor(Color::White);
+    }
+    else
+    {
+        if (scoreval > highscore)
+        {
+            highscore = scoreval;
+        }
+        ofstream file(highscorePath);
+        if (file.is_open())
+        {
+            file << highscore;
+            file.close();
+        }
+    }
 }
 
 void Game::render(float deltaTime)
@@ -145,5 +173,6 @@ void Game::render(float deltaTime)
     else
         window.draw(player.gameOverText);
     window.draw(scoreText);
+    window.draw(highscoreText);
     window.display();
 }
