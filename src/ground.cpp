@@ -29,7 +29,7 @@ Ground::Ground(const string &basePath)
     lastObstacleX = 0;
     minObstacleSpacing = 300.0f; // Minimum pixels between obstacles
     gameTime = 0.0f;
-    initialDelay = 5.0f;
+    initialDelay = 3.0f;
     generateInitialGround();
 }
 
@@ -74,36 +74,44 @@ void Ground::generateInitialGround()
 
 void Ground::spawnObstacleGroup(float xPosition)
 {
-    // Decide whether to spawn a single or stacked obstacle
-    bool spawnStacked = (rand() / static_cast<float>(RAND_MAX) < 0.3f); // 30% chance for stacked obstacles
+    int height = (rand() / static_cast<float>(RAND_MAX) < 0.4f) ? 3 : 2;
 
-    // Spawn bottom obstacle
-    Obstacle bottomObstacle;
-    int obstacleType = obstacleTextureIds[rand() % obstacleTextureIds.size()];
+    bool doubleThickness = (rand() / static_cast<float>(RAND_MAX) < 0.3f);
 
-    if (obstacleType <= tileTextures.size() && tileTextures[obstacleType - 1])
+    for (int i = 0; i < height; i++)
     {
-        bottomObstacle.sprite.setTexture(*tileTextures[obstacleType - 1]);
-        bottomObstacle.sprite.setPosition(xPosition, 720 - (gridHeight * tileSize) - tileSize);
-        bottomObstacle.isActive = true;
-        bottomObstacle.hitbox = bottomObstacle.sprite.getGlobalBounds();
-        obstacles.push_back(bottomObstacle);
+        Obstacle obstacle;
+        int obstacleType = obstacleTextureIds[rand() % obstacleTextureIds.size()];
 
-        // Possibly spawn a second obstacle on top
-        if (spawnStacked)
+        if (obstacleType <= tileTextures.size() && tileTextures[obstacleType - 1])
         {
-            Obstacle topObstacle;
-            int topObstacleType = obstacleTextureIds[rand() % obstacleTextureIds.size()];
+            obstacle.sprite.setTexture(*tileTextures[obstacleType - 1]);
+            obstacle.sprite.setPosition(
+                xPosition,
+                720 - (gridHeight * tileSize) - ((i + 1) * tileSize));
+            obstacle.isActive = true;
+            obstacle.hitbox = obstacle.sprite.getGlobalBounds();
+            obstacles.push_back(obstacle);
+        }
+    }
 
-            if (topObstacleType <= tileTextures.size() && tileTextures[topObstacleType - 1])
+    if (doubleThickness)
+    {
+        for (int i = 0; i < height; i++)
+        {
+            Obstacle obstacle;
+            int obstacleType = obstacleTextureIds[rand() % obstacleTextureIds.size()];
+
+            if (obstacleType <= tileTextures.size() && tileTextures[obstacleType - 1])
             {
-                topObstacle.sprite.setTexture(*tileTextures[topObstacleType - 1]);
-                // Position the top obstacle above the bottom one
-                topObstacle.sprite.setPosition(xPosition,
-                                               bottomObstacle.sprite.getPosition().y - tileSize);
-                topObstacle.isActive = true;
-                topObstacle.hitbox = topObstacle.sprite.getGlobalBounds();
-                obstacles.push_back(topObstacle);
+                obstacle.sprite.setTexture(*tileTextures[obstacleType - 1]);
+                // Position each block in the second column
+                obstacle.sprite.setPosition(
+                    xPosition + tileSize, // Offset by one tile width
+                    720 - (gridHeight * tileSize) - ((i + 1) * tileSize));
+                obstacle.isActive = true;
+                obstacle.hitbox = obstacle.sprite.getGlobalBounds();
+                obstacles.push_back(obstacle);
             }
         }
     }
@@ -113,32 +121,28 @@ void Ground::handlePlayerCollision(Player &player)
 {
 
     FloatRect playerHitbox = player.sprite.getGlobalBounds();
-    // Adjust these values based on your player sprite to create a tighter box
-    float hitboxScale = 0.1f; // Reduce hitbox to 60% of sprite size
-
-    // Calculate the reduced hitbox dimensions while keeping it centered
+    float hitboxScale = 0.1f; 
     float widthReduction = playerHitbox.width * (1 - hitboxScale);
-    // float heightReduction = playerHitbox.height * (1 - hitboxScale);
-
+    
     FloatRect tightPlayerHitbox(
-        playerHitbox.left + (widthReduction / 2), // Center the hitbox horizontally
-        playerHitbox.top,                         // Center the hitbox vertically
-        playerHitbox.width * hitboxScale,         // Reduced width
-        playerHitbox.height                       // Reduced height
+        playerHitbox.left + (widthReduction / 2), 
+        playerHitbox.top,                         
+        playerHitbox.width * hitboxScale,         
+        playerHitbox.height                       
     );
 
     for (auto &obstacle : obstacles)
     {
         if (obstacle.isActive && obstacle.hitbox.intersects(tightPlayerHitbox))
         {
-            if (player.jumpVelocity > 0) // Player is jumping
+            if (player.jumpVelocity > 0) 
             {
-                // Player successfully avoids the obstacle
+                
                 continue;
             }
             else
             {
-                // Player collides with the obstacle
+                
                 player.isColliding = true;
                 player.pushBackAmount = 2.0f;
                 cout << "Collision detected! Game Over." << endl;
