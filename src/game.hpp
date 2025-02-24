@@ -32,6 +32,9 @@ public:
     float scrollSpeed = 50.0f;
     float backgroundTransitionAlpha;
     bool isNightMode;
+    float transitionProgress;
+    float targetTransitionProgress;
+    const float TRANSITION_SPEED = 0.5f;
 
     Game(const std::string &assetsPath);
     void run();

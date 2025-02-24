@@ -9,7 +9,9 @@ Game::Game(const std::string &assetsPath)
       ground(assetsPath + "/world/ground"),
       scrollSpeed(200.0f), // Adjust speed as necessary
       backgroundTransitionAlpha(0.0f),
-      isNightMode(false)
+      isNightMode(false),
+      transitionProgress(0.0f),
+      targetTransitionProgress(0.0f)
 {
     window.setVerticalSyncEnabled(true);
     srand(time(0));
@@ -57,23 +59,29 @@ Game::Game(const std::string &assetsPath)
 
 void Game::updateBackgroundTransition(float deltaTime)
 {
-    bool shouldBeNight = (scoreval / 2000) % 2 == 1;
+    // Calculate target state based on score
+    float newTarget = (scoreval / 2000) % 2 == 1 ? 1.0f : 0.0f;
 
-    if (shouldBeNight != isNightMode)
+    // Update target if it changed
+    if (targetTransitionProgress != newTarget)
     {
-        // Transition alpha
-        backgroundTransitionAlpha = std::min(1.0f, backgroundTransitionAlpha + deltaTime);
-        if (backgroundTransitionAlpha >= 1.0f)
-        {
-            isNightMode = shouldBeNight;
-            backgroundTransitionAlpha = 0.0f;
-        }
+        targetTransitionProgress = newTarget;
     }
 
-    // Update background textures
+    // Smoothly interpolate current transition progress toward target
+    if (transitionProgress < targetTransitionProgress)
+    {
+        transitionProgress = std::min(transitionProgress + TRANSITION_SPEED * deltaTime, targetTransitionProgress);
+    }
+    else if (transitionProgress > targetTransitionProgress)
+    {
+        transitionProgress = std::max(transitionProgress - TRANSITION_SPEED * deltaTime, targetTransitionProgress);
+    }
+
+    // Update background colors based on transition progress
     for (auto &background : backgrounds)
     {
-        background.setTexture(isNightMode ? &backgroundNightTexture : &backgroundTexture);
+        background.setTexture(&backgroundTexture); // Always set to day texture
     }
 }
 
@@ -209,19 +217,20 @@ void Game::render(float deltaTime)
             window.draw(background);
         }
 
-        if (backgroundTransitionAlpha > 0.0f)
+        // Draw night backgrounds with transparency based on transition
+        if (transitionProgress > 0.0f)
         {
             for (const auto &background : backgrounds)
             {
-
-                RectangleShape transitionBg = background;
-                transitionBg.setTexture(isNightMode ? &backgroundTexture : &backgroundNightTexture);
-                transitionBg.setFillColor(Color(255, 255, 255,
-                                                static_cast<uint8_t>(255 * (1.0f - backgroundTransitionAlpha))));
-                window.draw(transitionBg);
+                RectangleShape nightBg = background;
+                nightBg.setTexture(&backgroundNightTexture);
+                nightBg.setFillColor(Color(255, 255, 255,
+                                           static_cast<uint8_t>(255 * transitionProgress)));
+                window.draw(nightBg);
             }
         }
 
+        // Draw clouds
         for (const auto &cloud : clouds)
         {
             window.draw(cloud.sprite);
