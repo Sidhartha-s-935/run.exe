@@ -22,7 +22,7 @@ Ground::Ground(const string &basePath)
             continue;
         }
         cout << "Successfully loaded: " << filename << endl;
-        tileTextures.push_back(move(texture));
+        tileTextures.push_back(std::move(texture));
     }
 
     cout << "Total textures loaded: " << tileTextures.size() << endl;
@@ -121,28 +121,27 @@ void Ground::handlePlayerCollision(Player &player)
 {
 
     FloatRect playerHitbox = player.sprite.getGlobalBounds();
-    float hitboxScale = 0.1f; 
+    float hitboxScale = 0.1f;
     float widthReduction = playerHitbox.width * (1 - hitboxScale);
-    
+
     FloatRect tightPlayerHitbox(
-        playerHitbox.left + (widthReduction / 2), 
-        playerHitbox.top,                         
-        playerHitbox.width * hitboxScale,         
-        playerHitbox.height                       
-    );
+        playerHitbox.left + (widthReduction / 2),
+        playerHitbox.top,
+        playerHitbox.width * hitboxScale,
+        playerHitbox.height);
 
     for (auto &obstacle : obstacles)
     {
         if (obstacle.isActive && obstacle.hitbox.intersects(tightPlayerHitbox))
         {
-            if (player.jumpVelocity > 0) 
+            if (player.jumpVelocity > 0)
             {
-                
+
                 continue;
             }
             else
             {
-                
+
                 player.isColliding = true;
                 player.pushBackAmount = 2.0f;
                 cout << "Collision detected! Game Over." << endl;

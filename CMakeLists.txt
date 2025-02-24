@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(SFML_Game)
+project(Run.exe)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -21,7 +21,7 @@ set(SOURCES
 )
 
 # Add executable
-add_executable(SFML_Game ${SOURCES})
+add_executable(Run.exe ${SOURCES})
 
 # Link SFML libraries
-target_link_libraries(SFML_Game sfml-graphics sfml-window sfml-system sfml-audio)
+target_link_libraries(Run.exe sfml-graphics sfml-window sfml-system sfml-audio)

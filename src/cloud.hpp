@@ -20,7 +20,7 @@ struct Cloud
 void initializeClouds(vector<Cloud> &clouds, const Texture &cloud1Texture,
                       const Texture &cloud2Texture, float scrollSpeed, float totalWidth);
 
-void updateClouds(vector<Cloud> &clouds, float deltaTime, const Texture &cloud1Texture,
-                  const Texture &cloud2Texture, float scrollSpeed);
+void updateClouds(std::vector<Cloud> &clouds, float deltaTime, const Texture &cloud1Texture, const Texture &cloud2Texture,
+                  const Texture &cloud3Texture, const Texture &cloud4Texture, float scrollSpeed, int score);
 
 #endif // CLOUD_HPP

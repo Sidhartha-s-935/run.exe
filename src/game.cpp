@@ -7,7 +7,9 @@ Game::Game(const std::string &assetsPath)
       menu(assetsPath, Vector2f(1280, 720)),
       player(assetsPath + "/sprites"),
       ground(assetsPath + "/world/ground"),
-      scrollSpeed(200.0f) // Adjust speed as necessary
+      scrollSpeed(200.0f), // Adjust speed as necessary
+      backgroundTransitionAlpha(0.0f),
+      isNightMode(false)
 {
     window.setVerticalSyncEnabled(true);
     srand(time(0));
@@ -22,6 +24,15 @@ Game::Game(const std::string &assetsPath)
 
     if (!cloud2Texture.loadFromFile(worldPath + "/cloud2.png"))
         std::cerr << "Failed to load cloud2 texture!" << std::endl;
+
+    if (!cloud3Texture.loadFromFile(worldPath + "/cloud3.png"))
+        std::cerr << "Failed to load cloud3 texture!" << std::endl;
+
+    if (!cloud4Texture.loadFromFile(worldPath + "/cloud4.png"))
+        std::cerr << "Failed to load cloud4 texture!" << std::endl;
+
+    if (!backgroundNightTexture.loadFromFile(worldPath + "/background-night.png"))
+        std::cerr << "Failed to load night background texture!" << std::endl;
 
     for (int i = 0; i < 3; i++)
     {
@@ -41,6 +52,28 @@ Game::Game(const std::string &assetsPath)
     {
         music.setLoop(true);
         music.play();
+    }
+}
+
+void Game::updateBackgroundTransition(float deltaTime)
+{
+    bool shouldBeNight = (scoreval / 2000) % 2 == 1;
+
+    if (shouldBeNight != isNightMode)
+    {
+        // Transition alpha
+        backgroundTransitionAlpha = std::min(1.0f, backgroundTransitionAlpha + deltaTime);
+        if (backgroundTransitionAlpha >= 1.0f)
+        {
+            isNightMode = shouldBeNight;
+            backgroundTransitionAlpha = 0.0f;
+        }
+    }
+
+    // Update background textures
+    for (auto &background : backgrounds)
+    {
+        background.setTexture(isNightMode ? &backgroundNightTexture : &backgroundTexture);
     }
 }
 
@@ -87,8 +120,11 @@ void Game::update(float deltaTime)
                 background.setPosition(leftmostX - 1280 + 1, 0);
             }
         }
-
-        updateClouds(clouds, deltaTime, cloud1Texture, cloud2Texture, -scrollSpeed);
+        updateBackgroundTransition(deltaTime);
+        updateClouds(clouds, deltaTime,
+                     cloud1Texture, cloud2Texture,
+                     cloud3Texture, cloud4Texture,
+                     -scrollSpeed, scoreval);
         ground.update(deltaTime, scrollSpeed * deltaTime, player);
         score(deltaTime);
 
@@ -171,6 +207,19 @@ void Game::render(float deltaTime)
         for (const auto &background : backgrounds)
         {
             window.draw(background);
+        }
+
+        if (backgroundTransitionAlpha > 0.0f)
+        {
+            for (const auto &background : backgrounds)
+            {
+
+                RectangleShape transitionBg = background;
+                transitionBg.setTexture(isNightMode ? &backgroundTexture : &backgroundNightTexture);
+                transitionBg.setFillColor(Color(255, 255, 255,
+                                                static_cast<uint8_t>(255 * (1.0f - backgroundTransitionAlpha))));
+                window.draw(transitionBg);
+            }
         }
 
         for (const auto &cloud : clouds)

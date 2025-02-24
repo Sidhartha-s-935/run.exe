@@ -12,7 +12,7 @@ Menu::Menu(const std::string &assetsPath, const Vector2f &windowSize)
 
     // Initialize title
     titleText.setFont(font);
-    titleText.setString("Runner Game");
+    titleText.setString("Run.exe");
     titleText.setCharacterSize(72);
     titleText.setFillColor(Color::White);
     centerText(titleText, windowSize.y * 0.25f);

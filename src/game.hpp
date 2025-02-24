@@ -13,7 +13,7 @@ class Game
 {
 public:
     RenderWindow window;
-    Texture backgroundTexture, cloud1Texture, cloud2Texture;
+    Texture backgroundTexture, cloud1Texture, cloud2Texture, cloud3Texture, cloud4Texture, backgroundNightTexture;
     vector<RectangleShape> backgrounds;
     vector<Cloud> clouds;
     Player player;
@@ -30,6 +30,8 @@ public:
     int highscore = 0;
     string assetsPath = "../assets";
     float scrollSpeed = 50.0f;
+    float backgroundTransitionAlpha;
+    bool isNightMode;
 
     Game(const std::string &assetsPath);
     void run();
@@ -37,6 +39,7 @@ public:
     void score(float deltaTime);
     void update(float deltaTime);
     void render(float deltaTime);
+    void updateBackgroundTransition(float deltaTime);
 };
 
 #endif // GAME_HPP
